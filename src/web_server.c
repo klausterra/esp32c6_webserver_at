@@ -153,7 +153,7 @@ esp_err_t web_server_init(void)
     config.server_port = 80;
     config.max_open_sockets = 7;
     config.max_resp_headers = 8;
-    config.max_uri_handlers = 8;
+    config.max_uri_handlers = 15;
     config.recv_wait_timeout = 25;
     
     if (httpd_start(&server, &config) == ESP_OK) {

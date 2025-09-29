@@ -130,31 +130,6 @@ static esp_err_t setup_softap(void)
     return ESP_OK;
 }
 
-/**
- * @brief Inicializar servidor web
- */
-static esp_err_t init_web_server(void)
-{
-    ESP_LOGI(TAG, "Inicializando servidor web na porta %d", g_config.web_port);
-    
-    httpd_handle_t server = NULL;
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.server_port = g_config.web_port;
-    config.max_open_sockets = 7;
-    config.max_resp_headers = 8;
-    config.max_uri_handlers = 8;
-    config.recv_wait_timeout = g_config.web_timeout;
-    
-    if (httpd_start(&server, &config) == ESP_OK) {
-        // Registrar handlers
-        register_web_handlers(server);
-        ESP_LOGI(TAG, "Servidor web iniciado com sucesso");
-        return ESP_OK;
-    }
-    
-    ESP_LOGE(TAG, "Erro ao iniciar servidor web");
-    return ESP_FAIL;
-}
 
 /**
  * @brief Inicializar Captive Portal
