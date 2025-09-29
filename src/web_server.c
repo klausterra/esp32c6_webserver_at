@@ -172,21 +172,46 @@ esp_err_t register_web_handlers(httpd_handle_t server)
     ESP_LOGI(TAG, "Registrando handlers HTTP");
     
     // Registrar handlers
+    ESP_LOGI(TAG, "Registrando root_uri: %s", root_uri.uri);
     httpd_register_uri_handler(server, &root_uri);
+    
+    ESP_LOGI(TAG, "Registrando dashboard_uri: %s", dashboard_uri.uri);
     httpd_register_uri_handler(server, &dashboard_uri);
+    
+    ESP_LOGI(TAG, "Registrando wifi_config_get_uri: %s", wifi_config_get_uri.uri);
     httpd_register_uri_handler(server, &wifi_config_get_uri);
+    
+    ESP_LOGI(TAG, "Registrando wifi_config_post_uri: %s", wifi_config_post_uri.uri);
     httpd_register_uri_handler(server, &wifi_config_post_uri);
+    
+    ESP_LOGI(TAG, "Registrando ota_get_uri: %s", ota_get_uri.uri);
     httpd_register_uri_handler(server, &ota_get_uri);
+    
+    ESP_LOGI(TAG, "Registrando ota_post_uri: %s", ota_post_uri.uri);
     httpd_register_uri_handler(server, &ota_post_uri);
+    
+    ESP_LOGI(TAG, "Registrando wifi_scan_api_uri: %s", wifi_scan_api_uri.uri);
     httpd_register_uri_handler(server, &wifi_scan_api_uri);
+    
+    ESP_LOGI(TAG, "Registrando status_api_uri: %s", status_api_uri.uri);
     httpd_register_uri_handler(server, &status_api_uri);
+    
+    ESP_LOGI(TAG, "Registrando firmware_api_uri: %s", firmware_api_uri.uri);
     httpd_register_uri_handler(server, &firmware_api_uri);
+    
+    ESP_LOGI(TAG, "Registrando ota_partitions_api_uri: %s", ota_partitions_api_uri.uri);
     httpd_register_uri_handler(server, &ota_partitions_api_uri);
+    
+    ESP_LOGI(TAG, "Registrando wechat_uri: %s", wechat_uri.uri);
     httpd_register_uri_handler(server, &wechat_uri);
+    
+    ESP_LOGI(TAG, "Registrando static_files_uri: %s", static_files_uri.uri);
     httpd_register_uri_handler(server, &static_files_uri);
+    
+    ESP_LOGI(TAG, "Registrando static_bg_uri: %s", static_bg_uri.uri);
     httpd_register_uri_handler(server, &static_bg_uri);
     
-    ESP_LOGI(TAG, "Handlers HTTP registrados");
+    ESP_LOGI(TAG, "Todos os handlers HTTP registrados com sucesso");
     return ESP_OK;
 }
 
