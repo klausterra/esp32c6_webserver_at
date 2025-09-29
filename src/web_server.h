@@ -60,6 +60,13 @@ esp_err_t register_web_handlers(httpd_handle_t server);
 const char* get_main_page(void);
 
 /**
+ * @brief Obter página de dashboard
+ * 
+ * @return const char* HTML da página de dashboard
+ */
+const char* get_dashboard_page(void);
+
+/**
  * @brief Obter página de configuração Wi-Fi
  * 
  * @return const char* HTML da página de configuração
@@ -125,6 +132,11 @@ const char* get_ota_partitions(void);
  * @brief Handler para página principal
  */
 esp_err_t root_get_handler(httpd_req_t *req);
+
+/**
+ * @brief Handler para dashboard
+ */
+esp_err_t dashboard_get_handler(httpd_req_t *req);
 
 /**
  * @brief Handler para configuração Wi-Fi
