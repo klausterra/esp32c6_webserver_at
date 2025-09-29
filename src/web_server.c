@@ -196,7 +196,7 @@ const char* get_main_page(void)
            ".card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); margin-bottom: 20px; }"
            ".header { text-align: center; margin-bottom: 30px; }"
            ".logo { width: 120px; height: 120px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; }"
-           ".logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 15px; }"
+           ".logo-text { width: 100%; height: 100%; background: linear-gradient(45deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold; font-family: 'Segoe UI', sans-serif; text-shadow: 0 2px 4px rgba(0,0,0,0.3); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }"
            "h1 { color: #2c3e50; font-size: 2.2em; margin-bottom: 10px; font-weight: 700; }"
            ".subtitle { color: #7f8c8d; font-size: 1.1em; margin-bottom: 5px; }"
            ".author { color: #95a5a6; font-size: 0.9em; font-style: italic; }"
@@ -229,7 +229,9 @@ const char* get_main_page(void)
            "<div class='container'>"
            "<div class='card'>"
            "<div class='header'>"
-           "<div class='logo'><img src='/assets/images/maya-logo.png' alt='Maya Logo'></div>"
+           "<div class='logo'>"
+           "<div class='logo-text'>M</div>"
+           "</div>"
            "<h1>Maya Wi-Fi Zigbee Gateway</h1>"
            "<p class='subtitle'>Gateway Inteligente para IoT e Automação</p>"
            "<p class='author'>Eng. Klaus Q. Terra - Hiperenge</p>"
@@ -859,8 +861,27 @@ esp_err_t wechat_handler(httpd_req_t *req)
 
 esp_err_t static_file_handler(httpd_req_t *req)
 {
-    // Handler simples para arquivos estáticos
-    // Por enquanto, retorna 404 para todos os arquivos
+    const char *uri = req->uri;
+    ESP_LOGI(TAG, "Solicitando arquivo: %s", uri);
+    
+    // Por enquanto, retornar uma imagem placeholder simples
+    if (strstr(uri, "maya-logo.png")) {
+        // Retornar uma imagem PNG simples (1x1 pixel transparente)
+        const char *png_data = "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xdb\x00\x00\x00\x00IEND\xaeB`\x82";
+        httpd_resp_set_type(req, "image/png");
+        httpd_resp_send(req, png_data, 67);
+        return ESP_OK;
+    }
+    
+    if (strstr(uri, "maya-background.jpg")) {
+        // Retornar uma imagem JPG simples (1x1 pixel)
+        const char *jpg_data = "\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa\xff\xd9";
+        httpd_resp_set_type(req, "image/jpeg");
+        httpd_resp_send(req, jpg_data, 164);
+        return ESP_OK;
+    }
+    
+    // Para outros arquivos, retornar 404
     httpd_resp_set_status(req, "404 Not Found");
     httpd_resp_set_type(req, "text/plain");
     httpd_resp_send(req, "File not found", HTTPD_RESP_USE_STRLEN);
@@ -931,23 +952,63 @@ const char* get_wifi_scan_results(void)
     cJSON *json = cJSON_CreateObject();
     cJSON *networks = cJSON_CreateArray();
     
-    // Simular algumas redes (em produção, usar wifi_manager_scan)
-    const char *test_networks[][2] = {
-        {"FAST_FWR310_02", "-45"},
-        {"VIVO-1234", "-60"},
-        {"NET_2G", "-70"},
-        {"TIM_WiFi", "-55"}
-    };
+    // Fazer scan real de redes Wi-Fi
+    wifi_scan_result_t scan_results[20];
+    uint16_t scan_count = 0;
     
-    for (int i = 0; i < 4; i++) {
+    esp_err_t ret = wifi_manager_scan(scan_results, 20, &scan_count);
+    if (ret == ESP_OK && scan_count > 0) {
+        ESP_LOGI(TAG, "Scan real: %d redes encontradas", scan_count);
+        
+        for (int i = 0; i < scan_count; i++) {
+            cJSON *network = cJSON_CreateObject();
+            cJSON_AddStringToObject(network, "ssid", scan_results[i].ssid);
+            cJSON_AddNumberToObject(network, "rssi", scan_results[i].rssi);
+            
+            // Converter auth_mode para string
+            const char *auth_str = "Open";
+            switch (scan_results[i].auth_mode) {
+                case WIFI_AUTH_OPEN:
+                    auth_str = "Open";
+                    break;
+                case WIFI_AUTH_WEP:
+                    auth_str = "WEP";
+                    break;
+                case WIFI_AUTH_WPA_PSK:
+                    auth_str = "WPA";
+                    break;
+                case WIFI_AUTH_WPA2_PSK:
+                    auth_str = "WPA2";
+                    break;
+                case WIFI_AUTH_WPA_WPA2_PSK:
+                    auth_str = "WPA/WPA2";
+                    break;
+                case WIFI_AUTH_WPA3_PSK:
+                    auth_str = "WPA3";
+                    break;
+                default:
+                    auth_str = "Unknown";
+                    break;
+            }
+            
+            cJSON_AddStringToObject(network, "auth", auth_str);
+            cJSON_AddNumberToObject(network, "channel", scan_results[i].channel);
+            cJSON_AddItemToArray(networks, network);
+        }
+    } else {
+        ESP_LOGW(TAG, "Erro no scan ou nenhuma rede encontrada: %s", esp_err_to_name(ret));
+        
+        // Adicionar rede de fallback para debug
         cJSON *network = cJSON_CreateObject();
-        cJSON_AddStringToObject(network, "ssid", test_networks[i][0]);
-        cJSON_AddStringToObject(network, "rssi", test_networks[i][1]);
+        cJSON_AddStringToObject(network, "ssid", "pos_softap");
+        cJSON_AddNumberToObject(network, "rssi", -30);
         cJSON_AddStringToObject(network, "auth", "WPA2");
+        cJSON_AddNumberToObject(network, "channel", 11);
         cJSON_AddItemToArray(networks, network);
     }
     
     cJSON_AddItemToObject(json, "networks", networks);
+    cJSON_AddNumberToObject(json, "count", scan_count);
     
     char *json_string = cJSON_Print(json);
     strncpy(json_buffer, json_string, sizeof(json_buffer) - 1);
@@ -961,14 +1022,35 @@ const char* get_wifi_scan_results(void)
 
 const char* get_system_status(void)
 {
-    static char json_buffer[512];
+    static char json_buffer[1024];
     cJSON *json = cJSON_CreateObject();
     
-    cJSON_AddBoolToObject(json, "wifi_connected", wifi_manager_is_connected());
-    cJSON_AddStringToObject(json, "wifi_ssid", "pos_softap");
-    cJSON_AddStringToObject(json, "uptime", "00:05:30");
+    // Status Wi-Fi
+    bool wifi_connected = wifi_manager_is_connected();
+    cJSON_AddBoolToObject(json, "wifi_connected", wifi_connected);
+    cJSON_AddStringToObject(json, "wifi_ssid", wifi_connected ? "Conectado" : "Desconectado");
+    
+    // SoftAP sempre ativo
+    cJSON_AddBoolToObject(json, "ap_active", true);
+    cJSON_AddStringToObject(json, "ap_ssid", "pos_softap");
+    cJSON_AddStringToObject(json, "ap_ip", "192.168.4.1");
+    
+    // Uptime em segundos (usando FreeRTOS tick count)
+    uint32_t uptime_seconds = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+    cJSON_AddNumberToObject(json, "uptime", uptime_seconds);
+    
+    // Memória
     cJSON_AddNumberToObject(json, "free_heap", esp_get_free_heap_size());
-    cJSON_AddStringToObject(json, "version", "1.0.0");
+    cJSON_AddNumberToObject(json, "min_free_heap", esp_get_minimum_free_heap_size());
+    
+    // Informações do sistema
+    cJSON_AddStringToObject(json, "version", "Maya Gateway v1.0.0");
+    cJSON_AddStringToObject(json, "chip_model", "ESP32-C6");
+    cJSON_AddNumberToObject(json, "cpu_freq", 160);
+    
+    // Status geral
+    cJSON_AddStringToObject(json, "status", "online");
+    cJSON_AddStringToObject(json, "author", "Eng. Klaus Q. Terra - Hiperenge");
     
     char *json_string = cJSON_Print(json);
     strncpy(json_buffer, json_string, sizeof(json_buffer) - 1);

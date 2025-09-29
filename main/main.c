@@ -123,7 +123,7 @@ static esp_err_t setup_softap(void)
         strcpy((char*)wifi_config.ap.password, g_config.ap_password);
     }
     
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_APSTA));
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
     
@@ -230,6 +230,9 @@ void app_main(void)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+    
+    // Inicializar wifi_manager
+    ESP_ERROR_CHECK(wifi_manager_init());
     
     // Criar interface de rede padrão para Wi-Fi (APÓS inicializar Wi-Fi)
     esp_netif_create_default_wifi_ap();
