@@ -93,6 +93,13 @@ static const httpd_uri_t wechat_uri = {
     .user_ctx  = NULL
 };
 
+static const httpd_uri_t static_files_uri = {
+    .uri       = "/assets/*",
+    .method    = HTTP_GET,
+    .handler   = static_file_handler,
+    .user_ctx  = NULL
+};
+
 // Função auxiliar para enviar resposta JSON
 static esp_err_t send_json_response(httpd_req_t *req, const char *json_str)
 {
@@ -169,6 +176,7 @@ esp_err_t register_web_handlers(httpd_handle_t server)
     httpd_register_uri_handler(server, &firmware_api_uri);
     httpd_register_uri_handler(server, &ota_partitions_api_uri);
     httpd_register_uri_handler(server, &wechat_uri);
+    httpd_register_uri_handler(server, &static_files_uri);
     
     ESP_LOGI(TAG, "Handlers HTTP registrados");
     return ESP_OK;
@@ -178,17 +186,20 @@ const char* get_main_page(void)
 {
     return "<!DOCTYPE html>"
            "<html><head>"
-           "<title>ESP32-C6 Web Server AT</title>"
+           "<title>Maya Wi-Fi Zigbee Gateway</title>"
            "<meta name='viewport' content='width=device-width, initial-scale=1'>"
            "<style>"
            "* { margin: 0; padding: 0; box-sizing: border-box; }"
-           "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }"
+           "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: url('/assets/images/maya-background.jpg') center/cover no-repeat fixed; min-height: 100vh; position: relative; }"
+           "body::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.4); z-index: -1; }"
            ".container { max-width: 800px; margin: 0 auto; padding: 20px; }"
            ".card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); margin-bottom: 20px; }"
            ".header { text-align: center; margin-bottom: 30px; }"
-           ".logo { width: 80px; height: 80px; background: linear-gradient(45deg, #667eea, #764ba2); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }"
-           "h1 { color: #2c3e50; font-size: 2.5em; margin-bottom: 10px; }"
-           ".subtitle { color: #7f8c8d; font-size: 1.1em; }"
+           ".logo { width: 120px; height: 120px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; }"
+           ".logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 15px; }"
+           "h1 { color: #2c3e50; font-size: 2.2em; margin-bottom: 10px; font-weight: 700; }"
+           ".subtitle { color: #7f8c8d; font-size: 1.1em; margin-bottom: 5px; }"
+           ".author { color: #95a5a6; font-size: 0.9em; font-style: italic; }"
            ".status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }"
            ".status-card { background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center; border-left: 4px solid #3498db; }"
            ".status-card.wifi { border-left-color: #27ae60; }"
@@ -218,9 +229,10 @@ const char* get_main_page(void)
            "<div class='container'>"
            "<div class='card'>"
            "<div class='header'>"
-           "<div class='logo'>ESP</div>"
-           "<h1>ESP32-C6 Web Server AT</h1>"
-           "<p class='subtitle'>Servidor Web Inteligente para ESP32-C6</p>"
+           "<div class='logo'><img src='/assets/images/maya-logo.png' alt='Maya Logo'></div>"
+           "<h1>Maya Wi-Fi Zigbee Gateway</h1>"
+           "<p class='subtitle'>Gateway Inteligente para IoT e Automação</p>"
+           "<p class='author'>Eng. Klaus Q. Terra - Hiperenge</p>"
            "</div>"
            "<div id='alerts'></div>"
            "<div class='status-grid'>"
@@ -248,7 +260,7 @@ const char* get_main_page(void)
            "<a href='/api/status' class='button info'>ℹ️ Status API</a>"
            "</div>"
            "<div class='footer'>"
-           "<p>ESP32-C6 Web Server AT v1.0.0 | Desenvolvido com ESP-IDF</p>"
+           "<p>Maya Gateway v1.0.0 | Desenvolvido com ESP-IDF | © 2025 Hiperenge</p>"
            "</div>"
            "</div>"
            "</div>"
@@ -294,11 +306,12 @@ const char* get_dashboard_page(void)
 {
     return "<!DOCTYPE html>"
            "<html><head>"
-           "<title>Dashboard - ESP32-C6</title>"
+           "<title>Dashboard - Maya Gateway</title>"
            "<meta name='viewport' content='width=device-width, initial-scale=1'>"
            "<style>"
            "* { margin: 0; padding: 0; box-sizing: border-box; }"
-           "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 100vh; }"
+           "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: url('/assets/images/maya-background.jpg') center/cover no-repeat fixed; min-height: 100vh; position: relative; }"
+           "body::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: -1; }"
            ".container { max-width: 1200px; margin: 0 auto; padding: 20px; }"
            ".header { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; }"
            ".header h1 { color: white; font-size: 3em; margin-bottom: 10px; }"
@@ -330,8 +343,9 @@ const char* get_dashboard_page(void)
            "<body>"
            "<div class='container'>"
            "<div class='header'>"
-           "<h1>📊 Dashboard ESP32-C6</h1>"
-           "<p>Monitoramento em Tempo Real do Sistema</p>"
+           "<h1>📊 Maya Gateway Dashboard</h1>"
+           "<p>Monitoramento em Tempo Real do Sistema IoT</p>"
+           "<p style='font-size: 0.9em; color: rgba(255, 255, 255, 0.7);'>Eng. Klaus Q. Terra - Hiperenge</p>"
            "</div>"
            "<div class='grid'>"
            "<div class='card'>"
@@ -841,6 +855,16 @@ esp_err_t wechat_handler(httpd_req_t *req)
                               "<body><h1>WeChat Applet Support</h1>"
                               "<p>Funcionalidade em desenvolvimento</p></body></html>";
     return send_html_response(req, wechat_html);
+}
+
+esp_err_t static_file_handler(httpd_req_t *req)
+{
+    // Handler simples para arquivos estáticos
+    // Por enquanto, retorna 404 para todos os arquivos
+    httpd_resp_set_status(req, "404 Not Found");
+    httpd_resp_set_type(req, "text/plain");
+    httpd_resp_send(req, "File not found", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
 }
 
 // Implementação das funções auxiliares
